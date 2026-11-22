@@ -1,0 +1,27 @@
+services:
+  selenoid:
+    image: aerokube/selenoid:latest-release
+    environment:
+      # Selenoid по умолчанию использует старую версию Docker API, новые версии Docker её не принимают
+      - DOCKER_API_VERSION=1.44
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./browsers.json:/etc/selenoid/browsers.json:ro
+    command: ["-conf", "/etc/selenoid/browsers.json", "-container-network", "selenoid"]
+    ports:
+      - "4444:4444"
+    networks:
+      - selenoid
+
+  tests:
+    build: .
+    depends_on:
+      - selenoid
+    volumes:
+      - ./allure_results:/app/allure_results
+    networks:
+      - selenoid
+
+networks:
+  selenoid:
+    name: selenoid
